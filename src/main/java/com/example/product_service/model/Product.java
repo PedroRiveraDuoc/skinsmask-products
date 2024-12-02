@@ -1,54 +1,56 @@
 package com.example.product_service.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "products")
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "El nombre es obligatorio")
-    @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
+    @Column(nullable = false)
     private String name;
 
-    @NotNull(message = "La descripción es obligatoria")
-    @Size(max = 255, message = "La descripción debe tener como máximo 255 caracteres")
+    @Column(length = 200)
     private String description;
 
-    @NotNull(message = "El precio es obligatorio")
-    @Min(value = 1, message = "El precio debe ser positivo")
-    private Integer price;
+    @Column(nullable = false)
+    private BigDecimal price;
 
-    @NotNull(message = "El stock es obligatorio")
-    @Min(value = 0, message = "El stock no puede ser negativo")
+    @Column(nullable = false)
     private Integer stock;
 
-    @NotNull(message = "La categoría es obligatoria")
-    @Column(name = "category_id")
-    private Long categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
-    @NotNull(message = "La URL de la imagen es obligatoria")
-    @Size(max = 255, message = "La URL de la imagen debe tener como máximo 255 caracteres")
-    private String imageUrl;
 
-    @NotNull(message = "La marca es obligatoria")
-    @Size(max = 50, message = "La marca debe tener como máximo 50 caracteres")
-    private String brand;
+    // One product can have multiple images
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
 
-    @NotNull(message = "La calificación es obligatoria")
-    @Min(value = 1, message = "La calificación debe ser entre 1 y 5")
-    @Max(value = 5, message = "La calificación debe ser entre 1 y 5")
-    private Integer rating;
 
-    @NotNull(message = "La disponibilidad es obligatoria")
-    @Pattern(regexp = "Y|N", message = "La disponibilidad debe ser 'Y' (sí) o 'N' (no)")
-    private String available;
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 
-    // Getters y Setters
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -74,44 +76,12 @@ public class Product {
         this.description = description;
     }
 
-    public Integer getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Integer price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public Integer getRating() {
-        return rating;
-    }
-
-    public void setRating(Integer rating) {
-        this.rating = rating;
-    }
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
     }
 
     public Integer getStock() {
@@ -122,11 +92,27 @@ public class Product {
         this.stock = stock;
     }
 
-    public String getAvailable() {
-        return available;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setAvailable(String available) {
-        this.available = available;
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

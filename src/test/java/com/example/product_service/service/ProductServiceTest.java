@@ -37,9 +37,10 @@ public class ProductServiceTest {
     private CategoryRepository categoryRepository;
 
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+public void setUp() {
+    MockitoAnnotations.openMocks(this);
+    productService = new ProductService(productRepository, categoryRepository);
+}
 
     @Test
     void testGetAllProducts() {

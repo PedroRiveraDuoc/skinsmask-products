@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.dto.CategoryDto;
+import com.example.product_service.exception.GlobalExceptionHandler;
 import com.example.product_service.service.CategoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -45,7 +46,10 @@ public class CategoryControllerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(categoryController).build();
+        categoryController = new CategoryController(categoryService);
+        mockMvc = MockMvcBuilders.standaloneSetup(categoryController)
+                .setControllerAdvice(new GlobalExceptionHandler()) // Añade esta línea
+                .build();
         objectMapper = new ObjectMapper();
     }
 

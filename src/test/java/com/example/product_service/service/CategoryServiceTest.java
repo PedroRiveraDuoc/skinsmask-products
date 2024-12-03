@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,8 +29,9 @@ public class CategoryServiceTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+    MockitoAnnotations.openMocks(this);
+    categoryService = new CategoryService(categoryRepository);
+}
 
     @Test
     public void testGetAllCategories() {

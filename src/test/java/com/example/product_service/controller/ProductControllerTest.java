@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.dto.ProductDto;
+import com.example.product_service.exception.GlobalExceptionHandler;
 import com.example.product_service.exception.ProductNotFoundException;
 import com.example.product_service.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +48,10 @@ public class ProductControllerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
+        productController = new ProductController(productService);
+        mockMvc = MockMvcBuilders.standaloneSetup(productController)
+                .setControllerAdvice(new GlobalExceptionHandler()) // Añade esta línea
+                .build();
         objectMapper = new ObjectMapper();
     }
 

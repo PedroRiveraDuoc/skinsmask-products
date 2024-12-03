@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.CategoryDto;
+import com.example.product_service.exception.CategoryNotFoundException;
 import com.example.product_service.model.Category;
 import com.example.product_service.repository.CategoryRepository;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class CategoryService {
 
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category with ID " + id + " not found"));
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + id + " not found"));
         return CategoryDto.fromEntity(category);
     }
 
@@ -42,7 +43,7 @@ public class CategoryService {
 
     public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
         Category existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category with ID " + id + " not found"));
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID " + id + " not found"));
 
         existingCategory.setName(categoryDto.getName());
         existingCategory.setDescription(categoryDto.getDescription());
@@ -53,7 +54,7 @@ public class CategoryService {
 
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
-            throw new RuntimeException("Category with ID " + id + " not found");
+            throw new CategoryNotFoundException("Category with ID " + id + " not found");
         }
         categoryRepository.deleteById(id);
     }

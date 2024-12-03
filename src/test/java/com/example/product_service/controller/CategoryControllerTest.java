@@ -3,6 +3,7 @@ package com.example.product_service.controller;
 import com.example.product_service.dto.CategoryDto;
 import com.example.product_service.exception.GlobalExceptionHandler;
 import com.example.product_service.service.CategoryService;
+import com.example.product_service.exception.CategoryNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -140,7 +141,8 @@ public class CategoryControllerTest {
     @Test
     public void testGetCategoryById_NotFound() throws Exception {
         // Preparar datos
-        when(categoryService.getCategoryById(1L)).thenThrow(new RuntimeException("Category with ID 1 not found"));
+        when(categoryService.getCategoryById(1L))
+                .thenThrow(new CategoryNotFoundException("Category with ID 1 not found"));
 
         // Ejecutar y verificar
         mockMvc.perform(get("/api/categories/1")

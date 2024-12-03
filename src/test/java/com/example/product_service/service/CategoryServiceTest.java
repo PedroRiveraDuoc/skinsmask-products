@@ -1,6 +1,7 @@
 package com.example.product_service.service;
 
 import com.example.product_service.dto.CategoryDto;
+import com.example.product_service.exception.CategoryNotFoundException;
 import com.example.product_service.model.Category;
 import com.example.product_service.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +30,9 @@ public class CategoryServiceTest {
 
     @BeforeEach
     public void setUp() {
-    MockitoAnnotations.openMocks(this);
-    categoryService = new CategoryService(categoryRepository);
-}
+        MockitoAnnotations.openMocks(this);
+        categoryService = new CategoryService(categoryRepository);
+    }
 
     @Test
     public void testGetAllCategories() {
@@ -80,7 +81,7 @@ public class CategoryServiceTest {
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
         // Ejecutar y verificar excepción
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        CategoryNotFoundException exception = assertThrows(CategoryNotFoundException.class, () -> {
             categoryService.getCategoryById(1L);
         });
 

@@ -6,7 +6,6 @@ import com.example.product_service.model.Category;
 import com.example.product_service.model.Product;
 import com.example.product_service.repository.CategoryRepository;
 import com.example.product_service.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +14,14 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    // Constructor para inyección de dependencias
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+    }
 
     public List<ProductDto> getAllProducts() {
         return productRepository.findAll().stream()

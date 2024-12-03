@@ -3,7 +3,6 @@ package com.example.product_service.service;
 import com.example.product_service.dto.CategoryDto;
 import com.example.product_service.model.Category;
 import com.example.product_service.repository.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,8 +11,12 @@ import java.util.stream.Collectors;
 @Service
 public class CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
+
+    // Constructor para inyección de dependencias
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
 
     public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll()

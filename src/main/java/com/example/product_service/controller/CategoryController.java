@@ -23,7 +23,7 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
-        logger.info("Creating category: {}", categoryDto.getName());
+        logger.info("Creating a new category...");
         return ResponseEntity.ok(categoryService.createCategory(categoryDto));
     }
 
@@ -35,19 +35,19 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long id) {
-        logger.info("Retrieving category with ID: {}", id);
+        logger.info("Retrieving a category...");
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDto categoryDto) {
-        logger.info("Updating category with ID: {}", id);
+        logger.info("Updating a category...");
         return ResponseEntity.ok(categoryService.updateCategory(id, categoryDto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        logger.info("Deleting category with ID: {}", id);
+        logger.info("Deleting a category...");
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }

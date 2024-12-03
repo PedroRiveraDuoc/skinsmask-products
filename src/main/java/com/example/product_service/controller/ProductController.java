@@ -1,6 +1,7 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.dto.ProductDto;
+import com.example.product_service.exception.ProductNotFoundException;
 import com.example.product_service.service.ProductService;
 
 import jakarta.validation.Valid;
@@ -20,7 +21,6 @@ public class ProductController {
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
 
-    // Constructor para inyección de dependencias
     public ProductController(ProductService productService) {
         this.productService = productService;
     }
@@ -45,7 +45,7 @@ public class ProductController {
         ProductDto createdProduct = productService.createProduct(productDto);
         return ResponseEntity.ok(createdProduct);
     }
-    
+
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDto productDto) {
         logger.info("Updating a product...");
@@ -58,5 +58,11 @@ public class ProductController {
         logger.info("Deleting a product...");
         productService.deleteProduct(id);
         return ResponseEntity.ok("Product deleted successfully");
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<String> handleProductNotFoundException(ProductNotFoundException ex) {
+        logger.error("Product not found: {}", ex.getMessage());
+        return ResponseEntity.status(404).body(ex.getMessage());
     }
 }

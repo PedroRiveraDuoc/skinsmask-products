@@ -18,7 +18,7 @@ public class ProductDto {
     private String description;
 
     @NotNull(message = "Price is required")
-    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
+    @DecimalMin(value = "0.01", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal price;
 
     @NotNull(message = "Stock is required")
@@ -29,9 +29,10 @@ public class ProductDto {
     private Long categoryId;
 
     @NotNull(message = "Photo is required")
-    private List<String> imageUrls; // Lista de URLs
+    @Size(min = 1, message = "At least one image URL is required")
+    private List<String> imageUrls;
 
-    
+    // Static factory method to create a DTO from an entity
     public static ProductDto fromEntity(Product product) {
         ProductDto dto = new ProductDto();
         dto.setId(product.getId());
@@ -44,6 +45,7 @@ public class ProductDto {
         return dto;
     }
 
+    // Method to convert this DTO to an entity
     public Product toEntity() {
         Product product = new Product();
         product.setId(this.id);

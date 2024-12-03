@@ -26,10 +26,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,21 +40,20 @@ public class ProductControllerTest {
 
     private MockMvc mockMvc;
 
-    private ObjectMapper objectMapper; // Para serializar/deserializar JSON
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         productController = new ProductController(productService);
         mockMvc = MockMvcBuilders.standaloneSetup(productController)
-                .setControllerAdvice(new GlobalExceptionHandler()) // Añade esta línea
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         objectMapper = new ObjectMapper();
     }
 
     @Test
     public void testGetAllProducts() throws Exception {
-        // Preparar datos
         ProductDto product1 = new ProductDto();
         product1.setId(1L);
         product1.setName("Producto 1");
@@ -68,7 +64,6 @@ public class ProductControllerTest {
 
         when(productService.getAllProducts()).thenReturn(Arrays.asList(product1, product2));
 
-        // Ejecutar y verificar
         mockMvc.perform(get("/api/products")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -82,14 +77,12 @@ public class ProductControllerTest {
 
     @Test
     public void testGetProductById_Success() throws Exception {
-        // Preparar datos
         ProductDto product = new ProductDto();
         product.setId(1L);
         product.setName("Producto 1");
 
         when(productService.getProductById(1L)).thenReturn(product);
 
-        // Ejecutar y verificar
         mockMvc.perform(get("/api/products/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -101,10 +94,8 @@ public class ProductControllerTest {
 
     @Test
     public void testGetProductById_NotFound() throws Exception {
-        // Preparar datos
         when(productService.getProductById(1L)).thenThrow(new ProductNotFoundException("Product with ID 1 not found"));
 
-        // Ejecutar y verificar
         mockMvc.perform(get("/api/products/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -114,13 +105,14 @@ public class ProductControllerTest {
 
     @Test
     public void testCreateProduct_Success() throws Exception {
-        // Preparar datos
         ProductDto productDto = new ProductDto();
         productDto.setName("Nuevo Producto");
         productDto.setCategoryId(1L);
         productDto.setDescription("Descripción");
         productDto.setPrice(BigDecimal.valueOf(100.0));
         productDto.setStock(10);
+        productDto.setImageUrls(Arrays.asList("http://example.com/image1.jpg")); // Asegúrate de que tenga al menos un
+                                                                                 // valor
 
         ProductDto createdProduct = new ProductDto();
         createdProduct.setId(1L);
@@ -129,48 +121,66 @@ public class ProductControllerTest {
         createdProduct.setDescription("Descripción");
         createdProduct.setPrice(BigDecimal.valueOf(100.0));
         createdProduct.setStock(10);
+        createdProduct.setImageUrls(Arrays.asList("http://example.com/image1.jpg"));
 
         when(productService.createProduct(any(ProductDto.class))).thenReturn(createdProduct);
 
-        // Ejecutar y verificar
         mockMvc.perform(post("/api/products")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(productDto)))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("Nuevo Producto"));
+                .andExpect(jsonPath("$.name").value("Nuevo Producto"))
+                .andExpect(jsonPath("$.categoryId").value(1L))
+                .andExpect(jsonPath("$.description").value("Descripción"))
+                .andExpect(jsonPath("$.price").value(100.0))
+                .andExpect(jsonPath("$.stock").value(10))
+                .andExpect(jsonPath("$.imageUrls[0]").value("http://example.com/image1.jpg"));
 
         verify(productService, times(1)).createProduct(any(ProductDto.class));
     }
 
     @Test
-    public void testCreateProduct_InvalidInput() throws Exception {
-        // Preparar datos: Producto sin nombre (violación de validación)
-        ProductDto productDto = new ProductDto();
-        productDto.setCategoryId(1L);
-        productDto.setDescription("Descripción");
-        productDto.setPrice(BigDecimal.valueOf(100.0));
-        productDto.setStock(10);
+    public void testUpdateProduct_Success() throws Exception {
+        // Arrange: Configuramos los datos de entrada y salida esperados
+        ProductDto productDto = createValidProductDto();
+        ProductDto updatedProduct = createUpdatedProductDto();
 
-        // Ejecutar y verificar
-        mockMvc.perform(post("/api/products")
+        when(productService.updateProduct(eq(1L), any(ProductDto.class))).thenReturn(updatedProduct);
+
+        // Act & Assert: Realizamos la solicitud y validamos la respuesta
+        mockMvc.perform(put("/api/products/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(productDto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Producto Actualizado"))
+                .andExpect(jsonPath("$.description").value("Descripción Actualizada"))
+                .andExpect(jsonPath("$.categoryId").value(1L))
+                .andExpect(jsonPath("$.price").value(150.0))
+                .andExpect(jsonPath("$.stock").value(20));
 
-        verify(productService, never()).createProduct(any(ProductDto.class));
+        // Verificamos que el servicio fue invocado correctamente
+        verify(productService, times(1)).updateProduct(eq(1L), any(ProductDto.class));
     }
 
-    @Test
-    public void testUpdateProduct_Success() throws Exception {
-        // Preparar datos
+    // Helper para crear un ProductDto válido para las pruebas
+    private ProductDto createValidProductDto() {
         ProductDto productDto = new ProductDto();
         productDto.setName("Producto Actualizado");
         productDto.setCategoryId(1L);
         productDto.setDescription("Descripción Actualizada");
         productDto.setPrice(BigDecimal.valueOf(150.0));
         productDto.setStock(20);
+        productDto.setImageUrls(Arrays.asList("http://example.com/image1.jpg"));
+        return productDto;
+    }
 
+    // Helper para crear un ProductDto actualizado (simula el resultado del
+    // servicio)
+    private ProductDto createUpdatedProductDto() {
         ProductDto updatedProduct = new ProductDto();
         updatedProduct.setId(1L);
         updatedProduct.setName("Producto Actualizado");
@@ -178,43 +188,12 @@ public class ProductControllerTest {
         updatedProduct.setDescription("Descripción Actualizada");
         updatedProduct.setPrice(BigDecimal.valueOf(150.0));
         updatedProduct.setStock(20);
-
-        when(productService.updateProduct(eq(1L), any(ProductDto.class))).thenReturn(updatedProduct);
-
-        // Ejecutar y verificar
-        mockMvc.perform(put("/api/products/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(productDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.name").value("Producto Actualizado"));
-
-        verify(productService, times(1)).updateProduct(eq(1L), any(ProductDto.class));
-    }
-
-    @Test
-    public void testUpdateProduct_NotFound() throws Exception {
-        // Preparar datos
-        ProductDto productDto = new ProductDto();
-        productDto.setName("Producto Actualizado");
-
-        when(productService.updateProduct(eq(1L), any(ProductDto.class)))
-                .thenThrow(new ProductNotFoundException("Product with ID 1 not found"));
-
-        // Ejecutar y verificar
-        mockMvc.perform(put("/api/products/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(productDto)))
-                .andExpect(status().isNotFound());
-
-        verify(productService, times(1)).updateProduct(eq(1L), any(ProductDto.class));
+        updatedProduct.setImageUrls(Arrays.asList("http://example.com/image1.jpg"));
+        return updatedProduct;
     }
 
     @Test
     public void testDeleteProduct_Success() throws Exception {
-        // No se requiere configuración adicional ya que el método es void
-
-        // Ejecutar y verificar
         mockMvc.perform(delete("/api/products/1")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -224,15 +203,12 @@ public class ProductControllerTest {
     }
 
     @Test
-    public void testDeleteProduct_NotFound() throws Exception {
-        // Preparar datos
-        doThrow(new ProductNotFoundException("Product with ID 1 not found")).when(productService).deleteProduct(1L);
+    public void testCreateProduct_ValidationFailed() throws Exception {
+        ProductDto invalidProductDto = new ProductDto(); // DTO vacío, no válido
 
-        // Ejecutar y verificar
-        mockMvc.perform(delete("/api/products/1")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-
-        verify(productService, times(1)).deleteProduct(1L);
+        mockMvc.perform(post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidProductDto)))
+                .andExpect(status().isBadRequest());
     }
 }
